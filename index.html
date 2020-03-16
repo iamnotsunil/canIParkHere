@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Healthy food finder</title>
+    <title>Can I Park Here?</title>
     <meta
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
@@ -41,7 +41,7 @@
     <div id="map"></div>
     <script>
       mapboxgl.accessToken =
-        "pk.eyJ1IjoibGludXMxMjMiLCJhIjoiY2s1d29tNW0yMGVhYTNscWI5a3R6bHhrMCJ9.PrVmxg6g-R9CfqDS3miaWA"; // set the access token
+        "pk.eyJ1IjoibGludXMxMjMiLCJhIjoiY2s1d29tNW0yMGVhYTNscWI5a3R6bHhrMCJ9.PrVmxg6g-R9CfqDS3miaWA";
 
       var map = new mapboxgl.Map({
         container: "map", // The container ID
@@ -56,7 +56,7 @@
           accessToken: mapboxgl.accessToken, // Set the access token
           mapboxgl: mapboxgl, // Set the mapbox-gl instance
           zoom: 17, // Set the zoom level for geocoding results
-          placeholder: "Enter an address or place name", // This placeholder text will display in the search bar
+          placeholder: "Enter an address or place name",
           bbox: [-73.985195, 40.682591, -73.95155, 40.703155], // Set a bounding box
         });
         // Add the geocoder to the map
@@ -67,8 +67,8 @@
         geocoder.on("result", function(data) {
           // When the geocoder returns a result
           var point = data.result.center; // Capture the result coordinates
-          var tileset = "linus123.3n9bd5kr"; // replace this with the ID of the tileset you created
-          var radius = 1609; // 1609 meters is roughly equal to one mile
+          var tileset = "linus123.47hxm3uj";
+          var radius = 1609; //
           var limit = 50; // The maximum amount of results to return
           //Tilequery API request
           var query =
@@ -107,7 +107,7 @@
 
         //Adding a visual representation of each points location
         map.addSource("tilequery", {
-          // Add a new source to the map style: https://docs.mapbox.com/mapbox-gl-js/api/#map#addsource
+          // Add a new source to the map style
           type: "geojson",
           data: {
             type: "FeatureCollection",
@@ -120,14 +120,14 @@
         console.log("--------", day);
 
         map.addLayer({
-          // Add a new layer to the map style: https://docs.mapbox.com/mapbox-gl-js/api/#map#addlayer
+          // Add a new layer to the map style
           id: "tilequery-points",
           type: "circle",
           source: "tilequery", // Set the layer source
           paint: {
             "circle-stroke-color": "white",
             "circle-stroke-width": {
-              // Set the stroke width of each circle: https://docs.mapbox.com/mapbox-gl-js/style-spec/#paint-circle-circle-stroke-width
+              // Set the stroke width of each circle
               stops: [
                 [0, 0.1],
                 [18, 3],
@@ -135,7 +135,7 @@
               base: 5,
             },
             "circle-radius": {
-              // Set the radius of each circle, as well as its size at each zoom level: https://docs.mapbox.com/mapbox-gl-js/style-spec/#paint-circle-circle-radius
+              // Set the radius of each circle,
               stops: [
                 [12, 30],
                 [22, 180],
@@ -165,7 +165,7 @@
               "#9ACD32",
               6,
               "#9ACD32",
-              "#008000", // any other store type
+              "#008000", // default
             ],
           },
         });
@@ -179,7 +179,7 @@
           var storeType = "<h4>" + e.features[0].properties.SIGN_TYPE + "</h4>"; // Set the store type
           var storeAddress =
             "<p>" + e.features[0].properties.ADDRESS_LINE1 + "</p>"; // Set the store address
-          var obj = JSON.parse(e.features[0].properties.tilequery); // Get the feature's tilequery object (https://docs.mapbox.com/api/maps/#response-retrieve-features-from-vector-tiles)
+          var obj = JSON.parse(e.features[0].properties.tilequery); // Get the feature's tilequery object
           var distance =
             "<p>" +
             (obj.distance / 1609.344).toFixed(2) +
@@ -188,7 +188,7 @@
 
           var lon = e.features[0].properties.longitude;
           var lat = e.features[0].properties.latitude;
-          var coordinates = new mapboxgl.LngLat(lon, lat); // Create a new LngLat object (https://docs.mapbox.com/mapbox-gl-js/api/#lnglatlike)
+          var coordinates = new mapboxgl.LngLat(lon, lat); // Create a new LngLat object
           var content = title + distance; // All the HTML elements
 
           popup
