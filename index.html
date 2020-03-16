@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Healthy food finder</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!-- Import Mapbox GL JS -->
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js"></script>
+    <link
+      href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <!-- Import jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!--- Import Mapbox GL JS Geocoder plugin-->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.2.0/mapbox-gl-geocoder.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.2.0/mapbox-gl-geocoder.css"
+      type="text/css"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoibGludXMxMjMiLCJhIjoiY2s1d29tNW0yMGVhYTNscWI5a3R6bHhrMCJ9.PrVmxg6g-R9CfqDS3miaWA"; // set the access token
+
+      var map = new mapboxgl.Map({
+        container: "map", // The container ID
+        style: "mapbox://styles/mapbox/light-v10", // The map style to use
+        center: [-73.97084, 40.68653], // Starting position [lng, lat]
+        zoom: 16, // Starting zoom level
+      });
+      //Geocoder plugin (searchbox and bounding box)
+      map.on("load", function() {
+        var geocoder = new MapboxGeocoder({
+          // Initialize the geocoder
+          accessToken: mapboxgl.accessToken, // Set the access token
+          mapboxgl: mapboxgl, // Set the mapbox-gl instance
+          zoom: 17, // Set the zoom level for geocoding results
+          placeholder: "Enter an address or place name", // This placeholder text will display in the search bar
+          bbox: [-73.985195, 40.682591, -73.95155, 40.703155], // Set a bounding box
+        });
+        // Add the geocoder to the map
+        map.addControl(geocoder, "top-left"); // Add the search box to the top left
+        //Placing a marker on the result location
+        var marker = new mapboxgl.Marker({ color: "#008000" }); // Create a new green marker
+
+        geocoder.on("result", function(data) {
+          // When the geocoder returns a result
+          var point = data.result.center; // Capture the result coordinates
+          var tileset = "linus123.3n9bd5kr"; // replace this with the ID of the tileset you created
+          var radius = 1609; // 1609 meters is roughly equal to one mile
+          var limit = 50; // The maximum amount of results to return
+          //Tilequery API request
+          var query =
+            "https://api.mapbox.com/v4/" +
+            tileset +
+            "/tilequery/" +
+            point[0] +
+            "," +
+            point[1] +
+            ".json?radius=" +
+            radius +
+            "&limit= " +
+            limit +
+            " &access_token=" +
+            mapboxgl.accessToken;
+
+          marker.setLngLat(point).addTo(map); // Add the marker to the map at the result coordinates
+
+          // Add a circle to the map for each point in the radius area
+          $.ajax({
+            // Makie the API call
+            method: "GET",
+            url: query,
+          }).done(function(data) {
+            // use the response to populate the 'tilequery' source
+            // console.log("----data---", data);
+            // // const newData = newData.features[0].properties.SIGN_TYPE;
+            // console.log(
+            //   "newdata_____",
+            //   newData.features[0].properties.SIGN_TYPE
+            // );
+            map.getSource("tilequery").setData(data);
+            // Code from the next step will go here
+          });
+        });
+
+        //Adding a visual representation of each points location
+        map.addSource("tilequery", {
+          // Add a new source to the map style: https://docs.mapbox.com/mapbox-gl-js/api/#map#addsource
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [],
+          },
+        });
+
+        var today = new Date();
+        var day = today.getDay();
+        console.log("--------", day);
+
+        map.addLayer({
+          // Add a new layer to the map style: https://docs.mapbox.com/mapbox-gl-js/api/#map#addlayer
+          id: "tilequery-points",
+          type: "circle",
+          source: "tilequery", // Set the layer source
+          paint: {
+            "circle-stroke-color": "white",
+            "circle-stroke-width": {
+              // Set the stroke width of each circle: https://docs.mapbox.com/mapbox-gl-js/style-spec/#paint-circle-circle-stroke-width
+              stops: [
+                [0, 0.1],
+                [18, 3],
+              ],
+              base: 5,
+            },
+            "circle-radius": {
+              // Set the radius of each circle, as well as its size at each zoom level: https://docs.mapbox.com/mapbox-gl-js/style-spec/#paint-circle-circle-radius
+              stops: [
+                [12, 30],
+                [22, 180],
+              ],
+              base: 5,
+            },
+            "circle-color": [
+              // "case",
+              // (day = ["get", "SIGN_TYPE"]),
+              // "#FF8C00",
+              // "#9ACD32",
+
+              //Specify the color each circle should be
+              "match",
+              ["get", "SIGN_TYPE"], // Use the result 'SIGN_TYPE' property
+              0,
+              "#9ACD32",
+              1,
+              "#FF0000",
+              2,
+              "#9ACD32",
+              3,
+              "#9ACD32",
+              4,
+              "#9ACD32",
+              5,
+              "#9ACD32",
+              6,
+              "#9ACD32",
+              "#008000", // any other store type
+            ],
+          },
+        });
+
+        var popup = new mapboxgl.Popup(); // Initialize a new popup
+
+        map.on("mouseenter", "tilequery-points", function(e) {
+          map.getCanvas().style.cursor = "pointer"; // When the cursor enters a feature, set it to a pointer
+
+          var title = "<h3>" + e.features[0].properties.SIGN_NAME + "</h3>"; // Set the store name
+          var storeType = "<h4>" + e.features[0].properties.SIGN_TYPE + "</h4>"; // Set the store type
+          var storeAddress =
+            "<p>" + e.features[0].properties.ADDRESS_LINE1 + "</p>"; // Set the store address
+          var obj = JSON.parse(e.features[0].properties.tilequery); // Get the feature's tilequery object (https://docs.mapbox.com/api/maps/#response-retrieve-features-from-vector-tiles)
+          var distance =
+            "<p>" +
+            (obj.distance / 1609.344).toFixed(2) +
+            " mi. from location" +
+            "</p>"; // Take the distance property, convert it to miles, and truncate it at 2 decimal places
+
+          var lon = e.features[0].properties.longitude;
+          var lat = e.features[0].properties.latitude;
+          var coordinates = new mapboxgl.LngLat(lon, lat); // Create a new LngLat object (https://docs.mapbox.com/mapbox-gl-js/api/#lnglatlike)
+          var content = title + distance; // All the HTML elements
+
+          popup
+            .setLngLat(coordinates) // Set the popup at the given coordinates
+            .setHTML(content) // Set the popup contents equal to the HTML elements you created
+            .addTo(map); // Add the popup to the map
+        });
+
+        map.on("mouseleave", "tilequery-points", function() {
+          map.getCanvas().style.cursor = ""; // Reset the cursor when it leaves the point
+          popup.remove(); // Remove the popup when the cursor leaves the point
+        });
+      });
+    </script>
+  </body>
+</html>
